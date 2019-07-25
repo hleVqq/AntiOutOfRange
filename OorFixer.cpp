@@ -3,11 +3,15 @@
 
 #include "Monitor.h"
 
-const BYTE OSD_LANGUAGE = 0xCC;
-const BYTE DISPLAY_MODE = 0xDC;
+enum
+{
+	VCP_OSD_LANGUAGE = 0xCC,
+	VCP_PICTURE_MODE = 0xDC,
+	VCP_AMA = 0xF0
+};
 
 HANDLE Monitor;
-DWORD OsdLanguage, DisplayMode;
+DWORD OsdLanguage, PictureMode, Ama;
 
 LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -17,8 +21,9 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 		if (GetMonitorRefreshRate() > 144)
 		{
 			Sleep(2500);
-			SetMonitorSetting(Monitor, OSD_LANGUAGE, OsdLanguage, 250);
-			SetMonitorSetting(Monitor, DISPLAY_MODE, DisplayMode);
+			SetMonitorSetting(Monitor, VCP_OSD_LANGUAGE, OsdLanguage, 250);
+			SetMonitorSetting(Monitor, VCP_PICTURE_MODE, PictureMode, 250);
+			SetMonitorSetting(Monitor, VCP_AMA, Ama);
 		}
 
 		break;
@@ -54,7 +59,7 @@ int SetupWindow(HINSTANCE instance, int cmdShow)
 
 	if (!RegisterClassEx(&wcex))
 	{
-		MessageBox(NULL, _T("Call to RegisterClassEx failed!"), _T("Windows Desktop Guided Tour"), NULL);
+		MessageBox(NULL, _T("Call to RegisterClassEx failed!"), _T("OOR Fixer"), NULL);
 
 		return 1;
 	}
@@ -63,7 +68,7 @@ int SetupWindow(HINSTANCE instance, int cmdShow)
 
 	if (!window)
 	{
-		MessageBox(NULL, _T("Call to CreateWindow failed!"), _T("Windows Desktop Guided Tour"), NULL);
+		MessageBox(NULL, _T("Call to CreateWindow failed!"), _T("OOR Fixer"), NULL);
 
 		return 1;
 	}
@@ -74,8 +79,9 @@ int SetupWindow(HINSTANCE instance, int cmdShow)
 int CALLBACK WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int cmdShow)
 {
 	Monitor = GetPrimaryMonitor();
-	OsdLanguage = GetMonitorSetting(Monitor, OSD_LANGUAGE);
-	DisplayMode = GetMonitorSetting(Monitor, DISPLAY_MODE);
+	OsdLanguage = GetMonitorSetting(Monitor, VCP_OSD_LANGUAGE);
+	PictureMode = GetMonitorSetting(Monitor, VCP_PICTURE_MODE);
+	Ama = GetMonitorSetting(Monitor, VCP_AMA);
 
 	if (SetupWindow(instance, cmdShow))
 		return 1;
