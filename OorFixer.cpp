@@ -4,8 +4,8 @@
 #include "OorFixer.h"
 #include "Monitor.h"
 
-#define SLEEP_DELAY_INITIAL 2500
-#define SLEEP_DELAY_SETTING 250
+#define DELAY_INITIAL 2500
+#define DELAY_SETTING 250
 
 enum VcpCode
 {
@@ -15,13 +15,19 @@ enum VcpCode
 };
 
 HANDLE Monitor;
-DWORD OriginalOsdLanguage, OriginalPictureMode, OriginalAma;
+
+DWORD OriginalOsdLanguage;
+DWORD OriginalPictureMode;
+DWORD OriginalAma;
+
+int InitialDelay = DELAY_INITIAL;
+int SettingDelay = DELAY_SETTING;
 
 void RestoreOriginalMonitorSettings()
 {
-	Sleep(SLEEP_DELAY_INITIAL);
-	SetVCPFeature(Monitor, VCP_OSD_LANGUAGE, OriginalOsdLanguage); Sleep(SLEEP_DELAY_SETTING);
-	SetVCPFeature(Monitor, VCP_PICTURE_MODE, OriginalPictureMode); Sleep(SLEEP_DELAY_SETTING);
+	Sleep(InitialDelay);
+	SetVCPFeature(Monitor, VCP_OSD_LANGUAGE, OriginalOsdLanguage); Sleep(SettingDelay);
+	SetVCPFeature(Monitor, VCP_PICTURE_MODE, OriginalPictureMode); Sleep(SettingDelay);
 	SetVCPFeature(Monitor, VCP_AMA, OriginalAma);
 }
 
@@ -84,9 +90,8 @@ int SetupWindow(HINSTANCE instance, int cmdShow)
 	return 0;
 }
 
-int CALLBACK WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int cmdShow)
+void CacheInitialMonitorSettings()
 {
-	Monitor = GetPrimaryMonitor();
 	OriginalOsdLanguage = GetMonitorSetting(Monitor, VCP_OSD_LANGUAGE);
 	OriginalPictureMode = GetMonitorSetting(Monitor, VCP_PICTURE_MODE);
 	OriginalAma = GetMonitorSetting(Monitor, VCP_AMA);
@@ -99,6 +104,23 @@ int CALLBACK WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPSTR, _I
 
 	if (OriginalAma > 100)
 		OriginalAma = 1;
+}
+
+int CALLBACK WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int cmdShow)
+{
+	Monitor = GetPrimaryMonitor();
+	CacheInitialMonitorSettings();
+
+	int argCount;
+	LPWSTR *args = CommandLineToArgvW(GetCommandLine(), &argCount);
+
+	if (args && argCount > 1)
+	{
+		InitialDelay = (int)wcstod(args[1], _T('\0'));
+
+		if (argCount > 2)
+			SettingDelay = (int)wcstod(args[2], _T('\0'));
+	}
 
 	if (GetMonitorRefreshRate() > 144)
 		RestoreOriginalMonitorSettings();

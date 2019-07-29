@@ -24,14 +24,6 @@ DWORD GetMonitorSetting(HANDLE monitor, BYTE setting)
 	return value;
 }
 
-void SetMonitorSetting(HANDLE monitor, BYTE setting, DWORD value, DWORD sleepAfter = 0)
-{
-	SetVCPFeature(monitor, setting, value);
-	
-	if (sleepAfter)
-		Sleep(sleepAfter);
-}
-
 int GetMonitorRefreshRate()
 {
 	DEVMODE dm;
